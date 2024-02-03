@@ -1,17 +1,7 @@
 from sqlalchemy import BigInteger, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
-from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from typing import List
-from config import ENGINE, ECHO
-
-engine = create_async_engine(url=ENGINE, echo=ECHO)
-
-async_session = async_sessionmaker(engine)
-
-
-class Base(AsyncAttrs, DeclarativeBase):
-    pass
+from .base import Base
 
 
 class User(Base):
@@ -20,7 +10,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id = mapped_column(BigInteger)
     
-    basket_rel: Mapped[List['Basket']] = relationship(back_populates='user_rel')
+    basket_rel: Mapped[list['Basket']] = relationship(back_populates='user_rel')
 
 
 class Category(Base):
@@ -29,7 +19,7 @@ class Category(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50))
     
-    item_rel: Mapped[List['Item']] = relationship(back_populates='category_rel')
+    item_rel: Mapped[list['Item']] = relationship(back_populates='category_rel')
 
 
 class Item(Base):
@@ -43,7 +33,7 @@ class Item(Base):
     category: Mapped[int] = mapped_column(ForeignKey('categories.id'))
 
     category_rel: Mapped['Category'] = relationship(back_populates='item_rel')
-    basket_rel: Mapped[List['Basket']] = relationship(back_populates='item_rel')
+    basket_rel: Mapped[list['Basket']] = relationship(back_populates='item_rel')
     
 
 class Basket(Base):
@@ -55,8 +45,3 @@ class Basket(Base):
     
     user_rel: Mapped['User'] = relationship(back_populates='basket_rel')
     item_rel: Mapped['Item'] = relationship(back_populates='basket_rel')
-
-
-async def async_main():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
