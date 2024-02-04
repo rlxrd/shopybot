@@ -2,3 +2,5 @@
 /config.py
 /db.sqlite3
 /__pycache__
+/app/__pycache__
+/app/database/__pycache__
