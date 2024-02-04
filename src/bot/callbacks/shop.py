@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.keyboards import ShopFactory, CategoryFactory, ItemFactory
-from bot.keyboards import category_builder, item_builder, back_to_menu
+from bot.keyboards import markup_builder, back_to_menu
 from db import Category, Item
 
 router = Router()
@@ -19,7 +19,7 @@ async def navigation_menu(
     if callback_data.nav == "catalog":
         all_categories = await session.scalars(select(Category))
         pattern["text"] = "Выберите категорию"
-        pattern["reply_markup"] = category_builder(all_categories)
+        pattern["reply_markup"] = markup_builder(all_categories)
 
     await query.answer()
     await query.message.edit_text(**pattern)
@@ -31,7 +31,7 @@ async def category_items(
 ) -> None:
     items = await session.scalars(select(Item))
     await query.answer()
-    await query.message.edit_text("Выберите товар", reply_markup=item_builder(items))
+    await query.message.edit_text("Выберите товар", reply_markup=markup_builder(items, "item"))
 
 
 @router.callback_query(ItemFactory.filter(F.id))
@@ -41,6 +41,6 @@ async def show_item(
     item = await session.scalar(select(Item).where(Item.id == callback_data.id))
     await query.answer()
     await query.message.edit_text(
-        f"<b>{item.name}</b> ({item.price} 💲)\n<i>{item.description}</i>",
+        f"<b>{item.name}</b> (<code>{item.price:,}</code> 💲)\n<i>{item.description}</i>",
         reply_markup=back_to_menu
     )
