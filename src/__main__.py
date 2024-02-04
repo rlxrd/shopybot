@@ -4,12 +4,14 @@ from contextlib import suppress
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
+from aiogram.fsm.scene import SceneRegistry
+from aiogram.fsm.storage.memory import SimpleEventIsolation
 
-from sqlalchemy.ext.asyncio import (
-    create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
-)
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, AsyncEngine
 
 from bot.middlewares import DBSessionMiddleware
+from bot.handlers import AdminPanel
 from bot.handlers import setup_message_routers
 from bot.callbacks import setup_callback_routers
 
@@ -32,7 +34,7 @@ async def main() -> None:
     sessionmaker = async_sessionmaker(_engine, expire_on_commit=False)
 
     bot = Bot(config.BOT_TOKEN.get_secret_value(), parse_mode=ParseMode.HTML)
-    dp = Dispatcher(_engine=_engine)
+    dp = Dispatcher(_engine=_engine, events_isolation=SimpleEventIsolation())
 
     dp.update.middleware(DBSessionMiddleware(sessionmaker))
 
@@ -43,6 +45,9 @@ async def main() -> None:
     callback_routers = setup_callback_routers()
     dp.include_router(message_routers)
     dp.include_router(callback_routers)
+
+    scene_registry = SceneRegistry(dp)
+    scene_registry.add(AdminPanel)
 
     await bot.delete_webhook(True)
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
