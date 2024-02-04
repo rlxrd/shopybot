@@ -11,3 +11,8 @@ class CategoryFactory(CallbackData, prefix="category"):
 
 class ItemFactory(CallbackData, prefix="item"):
     id: int
+
+
+class AdminFactory(CallbackData, prefix="admin"):
+    action: str
+    value: str | None = None
