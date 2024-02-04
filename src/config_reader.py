@@ -7,6 +7,8 @@ ENV_FILE_LOCATION = Path(".env").resolve()
 
 
 class Settings(BaseSettings):
+    ADMIN_IDS: list[int] = [1490170564]
+
     BOT_TOKEN: SecretStr
     DATABASE_URL: SecretStr
 
